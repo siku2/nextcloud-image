@@ -5,15 +5,12 @@ RUN set -ex; \
   \
   apt-get update; \
   apt-get install -y --no-install-recommends \
+  # Common dependencies
   ffmpeg \
   libmagickcore-6.q16-6-extra \
   procps \
   smbclient \
   supervisor \
-  # Antivirus for files
-  # <https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/antivirus_configuration.html>
-  clamav \
-  clamav-daemon \
   # Automated PDF conversion
   # <https://github.com/nextcloud/workflow_pdf_converter>
   libreoffice \
@@ -64,7 +61,7 @@ RUN mkdir -p \
   /var/log/supervisord \
   /var/run/supervisord
 
-COPY supervisord.conf /
+COPY config/supervisord.conf /
 
 ENV NEXTCLOUD_UPDATE=1
 
