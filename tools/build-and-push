@@ -5,21 +5,21 @@ NEXTCLOUD_IMAGE_NAME="nextcloud"
 NEXTCLOUD_MIN_VERSION="21"
 IMAGE_NAME="ghcr.io/siku2/nextcloud"
 
-utils::version::lte() {
+utils::semver::lte() {
     [[ "$1" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ]]
 }
 
-utils::version::lt() {
+utils::semver::lt() {
     if [[ "$1" = "$2" ]]; then
         return 1
     else
-        utils::version::lte "$1" "$2"
+        utils::semver::lte "$1" "$2"
     fi
 }
 
 RE_SEMVER='[[:digit:]]+(\.[[:digit:]]+){,2}'
 
-utils::extract-semver() {
+utils::semver::extract() {
     [[ "$1" =~ $RE_SEMVER ]] && echo "${BASH_REMATCH[0]}"
 }
 
@@ -35,7 +35,9 @@ docker::list-tags() {
 docker::build-image-for-tag() {
     local tag="${1?}"
     docker build \
+        --build-arg BUILDKIT_INLINE_CACHE=1 \
         --build-arg NEXTCLOUD_TAG="$tag" \
+        --cache-from "$IMAGE_NAME" \
         --tag "$IMAGE_NAME:$tag" \
         .
 }
@@ -50,14 +52,13 @@ main() {
     echo >&2 "filtering tags to at least version $NEXTCLOUD_MIN_VERSION"
     local tags=()
     for tag in "${unfiltered_tags[@]}"; do
-        if ! utils::version::lt "$(utils::extract-semver "$tag")" $NEXTCLOUD_MIN_VERSION; then
+        if ! utils::semver::lt "$(utils::semver::extract "$tag")" $NEXTCLOUD_MIN_VERSION; then
             tags+=("$tag")
         fi
     done
     echo >&2 "found ${#tags[@]} tags"
 
     echo >&2 "pulling all images"
-    docker pull --all-tags "$IMAGE_NAME"
     for tag in "${tags[@]}"; do
         (
             docker pull "$NEXTCLOUD_IMAGE_NAME:$tag" 2>/dev/null
@@ -69,11 +70,11 @@ main() {
     echo >&2 "building new images"
     for tag in "${tags[@]}"; do
         echo >&2 "building $tag"
-        docker::build-image-for-tag "$tag" 2>/dev/null
+        docker::build-image-for-tag "$tag"
     done
     wait
 
-    echo "pushing images"
+    echo >&2 "pushing images"
     docker push --all-tags "$IMAGE_NAME"
 }
 
