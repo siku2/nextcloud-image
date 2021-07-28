@@ -59,6 +59,7 @@ main() {
     echo >&2 "found ${#tags[@]} tags"
 
     echo >&2 "pulling all images"
+    docker pull --all-tags "$IMAGE_NAME" 2>/dev/null
     for tag in "${tags[@]}"; do
         (
             docker pull "$NEXTCLOUD_IMAGE_NAME:$tag" 2>/dev/null
