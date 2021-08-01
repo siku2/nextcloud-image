@@ -7,6 +7,7 @@ RUN set -ex; \
   apt-get install -y --no-install-recommends \
   # Common dependencies
   ffmpeg \
+  iproute2 \
   libmagickcore-6.q16-6-extra \
   procps \
   smbclient \
