@@ -61,7 +61,10 @@ RUN mkdir -p \
   /var/log/supervisord \
   /var/run/supervisord
 
-COPY config/supervisord.conf /
+COPY \
+  config/fulltextsearch.sh \
+  config/supervisord.conf \
+  /
 
 ENV NEXTCLOUD_UPDATE=1
 
